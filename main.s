@@ -43,7 +43,7 @@ main:
 	add	fp, sp, #8
 	sub	sp, sp, #20
 	ldr	r4, .L11
-.LPIC1:
+seedRandom:
 	add	r4, pc, r4
 	mov	r0, #0
 	bl	time				@ time(0)
@@ -64,16 +64,16 @@ index:
 	ldr	r3, [r4, r3]
 	mov	r2, r3
 	ldr	r1, [fp, #-28]
-	ldr	r3, .L11+12 		@ fileNameMsg
+	ldr	r3, .L11+12			@ fileNameMsg
 findWord:
 	add	r3, pc, r3
-	mov	r0, r3				@ 
+	mov	r0, r3				
 	bl	getWord				@ get the word from the index
 	mov	r3, #0				@ i = 0 (loop)
 	str	r3, [fp, #-16]
 	b	setupBoard
 setupDefaultMsg:
-	ldr	r3, .L11+16 		@ defaultStateMsg
+	ldr	r3, .L11+16			@ defaultStateMsg
 defaultPrint:
 	add	r3, pc, r3
 	mov	r0, r3				
@@ -87,7 +87,7 @@ setupBoard:
 	ble	setupDefaultMsg		@ setup printf
 	mov	r3, #0
 	str	r3, [fp, #-20]		@ local_greenCounter
-	b	.L4
+	b	loopRules
 preparePromptMsg:
 	ldr	r3, .L11+20 		@ guessPromptMsg
 promptPrint:
@@ -103,74 +103,74 @@ promptPrint:
 	ldr	r2, [r4, r2]
 	add	r3, r3, r2
 	mov	r1, r3				@ userGuesses[guessesMade]
-	ldr	r3, .L11+32 		@ stringFormatMsg
+	ldr	r3, .L11+32			@ stringFormatMsg
 getGuess:
 	add	r3, pc, r3
 	mov	r0, r3				@ "%s"
 	bl	__isoc99_scanf		@ scanf("%s", userGuesses[guessesMade]);
-	ldr	r3, .L11+36 		@ clearConsoleMsg
-.LPIC6:
+	ldr	r3, .L11+36			@ clearConsoleMsg
+setupTestWord:
 	add	r3, pc, r3
 	mov	r0, r3				@ "\033c"
 	bl	printf				@ printf("\033c");
-	ldr	r3, .L11+24 		@ globals_guessesMade
-ldr	r3, [r4, r3]
+	ldr	r3, .L11+24			@ globals_guessesMade
+	ldr	r3, [r4, r3]
 	ldr	r3, [r3]
 	mov	r2, #6
 	mul	r3, r2, r3
-	ldr	r2, .L11+28 		@ globals_userGuesses
+	ldr	r2, .L11+28			@ globals_userGuesses
 	ldr	r2, [r4, r2]
 	add	r3, r3, r2
 	mov	r1, r3				@ userGuesses[guessesMade]
-	ldr	r3, .L11+40 		@ fileNameMsg
-.LPIC7:
+	ldr	r3, .L11+40			@ fileNameMsg
+testWord:
 	add	r3, pc, r3
 	mov	r0, r3				@ "5Letter.txt"
 	bl	validWord			@ validWord("5Letter.txt", userGuesses[guessesMade])
 	mov	r3, r0
 	cmp	r3, #0				@ if (!validWord(..., ...)
-	bne	.L5					
+	bne	printBoard					
 	ldr	r3, .L11+44			@ invalidWordMsg
-.LPIC8:
+printInvalidMsg:
 	add	r3, pc, r3
 	mov	r0, r3				@ "follow the rules please.. you need to choose a real five letter word"
 	bl	puts				@ print("follow the rules please.. you need to choose a real five letter word")
-	b	.L4
-.L5:
+	b	loopRules
+printBoard:
 	bl	findColorCodes		@ get all color codes
 	bl	printInColor		@ print board showing color codes
 	str	r0, [fp, #-20]		@ local_greenCounter
-	ldr	r3, .L11+24 		@ globals_guessesMade
+	ldr	r3, .L11+24			@ globals_guessesMade
 	ldr	r3, [r4, r3]
 	ldr	r3, [r3]
 	add	r2, r3, #1			@ guessesMade++
-	ldr	r3, .L11+24 		@ globals_guessesMade
+	ldr	r3, .L11+24			@ globals_guessesMade
 	ldr	r3, [r4, r3]
 	str	r2, [r3]
-.L4:
+loopRules:
 	ldr	r3, [fp, #-20]		@ local_greenCounter
 	cmp	r3, #5				
-	beq	.L6					@ while (greenCounter != WORDLENGTH && ..)
+	beq	testCorrect			@ while (greenCounter != WORDLENGTH && ..)
 	ldr	r3, .L11+24 		@ globals_guessesMade
 	ldr	r3, [r4, r3]
 	ldr	r3, [r3]
 	cmp	r3, #4				@ while (.. && guessesMade < MAXGUESS)
 	ble	preparePromptMsg	
-.L6:
+testCorrect:
 	ldr	r3, [fp, #-20]		@ local_greenCounter
 	cmp	r3, #5				@ greenCounter == WORDLENGTH
 	bne	.L8
 	ldr	r3, .L11+48			@ correctWordMsg
-.LPIC9:
+printCorrectMsg:
 	add	r3, pc, r3
 	mov	r2, r3				@ correctWordMsg
-	b	.L9					@ printf("congrats you win!\n")
+	b	epilogue			@ printf("congrats you win!\n")
 .L8:
 	ldr	r3, .L11+52			@ loseMsg
-.LPIC10:
+printLoseMsg:
 	add	r3, pc, r3
 	mov	r2, r3				@ printf("nice try, however the word was: %s\n")
-.L9:
+epilogue:
 	ldr	r3, .L11+8 			@ correctWord (global variable)
 	ldr	r3, [r4, r3]
 	mov	r1, r3
@@ -184,7 +184,7 @@ ldr	r3, [r4, r3]
 .L12:
 	.align	2
 .L11:
-	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+8)
+	.word	_GLOBAL_OFFSET_TABLE_-(seedRandom+8)
 	.word	fileNameMsg-(index+8)
 	.word	correctWord(GOT)
 	.word	fileNameMsg-(findWord+8)
@@ -193,11 +193,11 @@ ldr	r3, [r4, r3]
 	.word	guessesMade(GOT)
 	.word	userGuesses(GOT)
 	.word	stringFormatMsg-(getGuess+8)
-	.word	clearConsoleMsg-(.LPIC6+8)
-	.word	fileNameMsg-(.LPIC7+8)
-	.word	invalidWordMsg-(.LPIC8+8)
-	.word	correctWordMsg-(.LPIC9+8)
-	.word	loseMsg-(.LPIC10+8)
+	.word	clearConsoleMsg-(setupTestWord+8)
+	.word	fileNameMsg-(testWord+8)
+	.word	invalidWordMsg-(printInvalidMsg+8)
+	.word	correctWordMsg-(printCorrectMsg+8)
+	.word	loseMsg-(printLoseMsg+8)
 	.size	main, .-main
 	.ident	"GCC: (Debian 8.3.0-6) 8.3.0"
 	.section	.note.GNU-stack,"",%progbits
