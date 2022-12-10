@@ -51,17 +51,17 @@ outerLoop:
 	add	r2, r0, r2
 	ldrb	r2, [r2]	
 	cmp	r1, r2			@ if (testWord[letter] == correctWord[letter])
-	bne	initializeColor				@ continue;
+	bne	initializeColor	@ continue;
 	ldr	r2, [fp, #-8]
 	ldr	r1, [fp, #-20]
 	add	r2, r1, r2
 	mov	r1, #50			@ colorCode[letter] = '2';
 	strb	r1, [r2]
-	b	incrementLetter				@ incrementLetter
+	b	incrementLetter	@ incrementLetter
 initializeColor:
 	mov	r2, #0			@ colorCode[letter] = '0';
 	str	r2, [fp, #-12]
-	b	checkLoop2				@ incrementLetter2
+	b	checkLoop2		@ incrementLetter2
 innerLoop:
 	ldr	r2, [fp, #-8]
 	ldr	r1, [fp, #-20]
@@ -79,13 +79,13 @@ innerLoop:
 	add	r2, r0, r2
 	ldrb	r2, [r2]	
 	cmp	r1, r2			@ if (testWord[letter] == correctWord[letter2])
-	bne	incrementLetter2				@ @ incrementLetter2
+	bne	incrementLetter2 @ incrementLetter2
 	ldr	r2, [fp, #-8]
 	ldr	r1, [fp, #-20]
 	add	r2, r1, r2
 	mov	r1, #49			@ colorCode[letter] = '1';
 	strb	r1, [r2]
-	b	incrementLetter				@ incrementLetter
+	b	incrementLetter	@ incrementLetter
 .L11:
 	nop
 incrementLetter2:
@@ -95,7 +95,7 @@ incrementLetter2:
 checkLoop2:
 	ldr	r2, [fp, #-12]
 	cmp	r2, #4			@ letter2 < 5
-	ble	innerLoop
+	ble	innerLoop		@ restart second loop
 incrementLetter:
 	ldr	r2, [fp, #-8]
 	add	r2, r2, #1		@ letter++
@@ -103,7 +103,7 @@ incrementLetter:
 checkLoop:
 	ldr	r2, [fp, #-8]
 	cmp	r2, #4			@ letter < 5
-	ble	outerLoop
+	ble	outerLoop		@ restart first loop
 	
 	add	sp, fp, #0
 	ldr	fp, [sp], #4
